@@ -24,6 +24,7 @@ namespace MyDB {
 	class Database;
 	using DatabasePtr = std::unique_ptr<Database>;
 	using DatabaseRawPtr = Database*;
+	using TransactionLogBlock = std::pair<OperationType,std::vector<BlockPtr>>;
 
 	class Database : public Storage {
 	public:
@@ -55,6 +56,7 @@ namespace MyDB {
 		void updateCache(std::shared_ptr<LRUCache<uint64_t, BlockPtr>> anInputCache);
 
 		std::shared_ptr<LockManager> getLockManager();
+		TransactionPtr               getTransactionPtr();
 
 		void updateLockManager(std::shared_ptr<LockManager> anLockManagerPtr);
 
@@ -89,19 +91,26 @@ namespace MyDB {
 		// roll back the former operation, which also need lock_manager for synchronization
 		void undo();
 		void redo();
-		void commit();
-		
+
+		//undo the log of current transaction when aborted
+		void undoAllTransactionLog(); 
+
+		//release all the lock after commited
+		void releaseAllLocks();
+
 
 	protected:
         
         void doTableJoin(SQLQueryPtr& aSelectQueryPtr,std::vector<std::unique_ptr<Row>>& aRows);
         
 		std::string 	name;
-
 		bool 			changed;
-
 		std::shared_ptr<LockManager>      	lockManagerPtr = nullptr;
 		TransactionPtr						transactionShrPtr = nullptr;
+
+		//metain a in memory transaction log, each logblock contains operation type and blockPtr
+		std::vector<TransactionLogBlock>    transactionLog;
+
 	};
 }
 #endif /* Database_hpp */

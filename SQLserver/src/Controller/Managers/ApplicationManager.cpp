@@ -1,4 +1,5 @@
 #include "ApplicationManager.hpp"
+#include "DatabaseInstanceManager.hpp"
 #include <fstream>
 
 namespace MyDB {
@@ -14,6 +15,9 @@ namespace MyDB {
 
 	void ApplicationManager::quitApplicationHandler(StatementPtr& aStatement)
 	{
+		if(DatabaseInstanceManager::hasActiveDatabase()){
+			DatabaseInstanceManager::unRegister();
+		}
 		output << "DB::141 is shutting down\n";
 		throw userTerminated;
 	}

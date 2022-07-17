@@ -26,11 +26,13 @@ namespace MyDB {
 	public:
 
 		static inline DatabaseRawPtr getActiveDatabase() {
+			std::lock_guard<std::mutex> theLG(DatabaseInstanceManager::databaseInstanceManagerLock);
 			threadID theThreadID = std::this_thread::get_id();
 			return DatabaseInstanceManager::threadIDToDBPtrMap[theThreadID].get();
 		}
 
 		static inline bool hasActiveDatabase() {
+			std::lock_guard<std::mutex> theLG(DatabaseInstanceManager::databaseInstanceManagerLock);
 			threadID theThreadID = std::this_thread::get_id();
 			if(threadIDToDBPtrMap.find(theThreadID) ==  threadIDToDBPtrMap.end()) return false;
 			return DatabaseInstanceManager::threadIDToDBPtrMap[theThreadID] != nullptr;
@@ -50,14 +52,21 @@ namespace MyDB {
 		static void commit(){
 			threadID theThreadID = std::this_thread::get_id();
 			if(DatabaseInstanceManager::hasActiveDatabase()){
-				DatabaseInstanceManager::threadIDToDBPtrMap[theThreadID]->commit();
+				DatabaseInstanceManager::threadIDToDBPtrMap[theThreadID]->releaseAllLocks();
 			}
 		}
 
-		static void abort(int operationCnt){
-			while(operationCnt>0){
-				operationCnt--;
-				DatabaseInstanceManager::getActiveDatabase()->undo();
+		static void unRegister(){
+			std::lock_guard<std::mutex> theLG(DatabaseInstanceManager::databaseInstanceManagerLock);
+			threadID theThreadID = std::this_thread::get_id();
+			DatabaseInstanceManager::threadIDToDBPtrMap[theThreadID]->releaseAllLocks();
+			DatabaseInstanceManager::threadIDToDBPtrMap.erase(theThreadID);
+		}
+
+		static void abort(){
+			threadID theThreadID = std::this_thread::get_id();
+			if(DatabaseInstanceManager::hasActiveDatabase()){
+				DatabaseInstanceManager::threadIDToDBPtrMap[theThreadID]->undoAllTransactionLog();
 			}
 		}
 

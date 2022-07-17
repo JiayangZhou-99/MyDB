@@ -34,6 +34,10 @@ namespace MyDB {
 		return lockManagerPtr;
 	}
 
+	TransactionPtr               Database::getTransactionPtr(){
+		return transactionShrPtr;
+	}
+
 	void Database::updateLockManager(std::shared_ptr<LockManager> anLockManagerPtr){
 		lockManagerPtr = anLockManagerPtr;
 	}
@@ -158,9 +162,21 @@ namespace MyDB {
 
 	void Database::insert(std::ostream& anOutput, RowCollectionPtr& aCollectionOfRows, std::string aTableName) {
 
+		lockManagerPtr->LockExclusive(transactionShrPtr.get(),0);
+		transactionShrPtr->GetExclusiveLockSet()->emplace(0);
+
+		TransactionLogBlock theCurTransactionLog;
+		std::vector<BlockPtr> theInsertedBlockPtrs;
+		// copy corrent meta
+		DatabaseMetaHeaderBlockPtr theCopyMeta = std::make_shared<MetaHeaderBlock>(metadata);
+		theInsertedBlockPtrs.push_back(theCopyMeta);
+
 		EntityBlockPtr theEntityBlock;
 		size_t thePreviousIndex;
 		getEntityBlock(aTableName, theEntityBlock, thePreviousIndex);
+
+		EntityBlockPtr theCopyEntity = std::make_shared<EntityBlock>(theEntityBlock);
+		theInsertedBlockPtrs.push_back(theCopyEntity);
 
 		//add a write lock to the entity and file metaheader
 		lockManagerPtr->LockExclusive(transactionShrPtr.get(),theEntityBlock->getBlockIndex());
@@ -177,11 +193,15 @@ namespace MyDB {
 		lockManagerPtr->lockLog();
 		
 		for (Row theRow : *aCollectionOfRows) {
+
 			theDataBlock = std::make_shared<DataBlock>(theSchema);
 			theDataBlock->setData(theRow);
 			popFreeBlock(theFreeBlock);
 			theDataBlock->setBlockIndex(theFreeBlock->getBlockIndex());
 			theDataBlock->nextDataIndex = theEntityBlock->firstDataIndex;
+			
+			//push to the in memory log
+			theInsertedBlockPtrs.push_back(theDataBlock); 
 			writeBlock(theDataBlock);
 
 			//Need to track where the new head of the list is
@@ -191,7 +211,8 @@ namespace MyDB {
 		}
 
 		writeBlock(theEntityBlock);
-	
+		theCurTransactionLog = TransactionLogBlock{OperationType::INSERT,theInsertedBlockPtrs};
+		transactionLog.push_back(theCurTransactionLog);
 		lockManagerPtr->unlockLog();
 
 		QueryResultView(aCollectionOfRows->size()).show(anOutput);
@@ -202,6 +223,13 @@ namespace MyDB {
 		std::vector<std::unique_ptr<Row>> theRows;
 		std::vector<int>                  theRowIndex;
 
+		// adding share lock to the entity table
+		EntityBlockPtr theEntityBlock;
+		size_t thePreviousIndex;
+		getEntityBlock(theEntityName, theEntityBlock, thePreviousIndex);
+		lockManagerPtr->LockShared(transactionShrPtr.get(),theEntityBlock->getBlockIndex());
+		transactionShrPtr->GetSharedLockSet()->emplace(theEntityBlock->getBlockIndex());
+
 		if (aSelectQueryPtr->hasJoin) {
 			doTableJoin(aSelectQueryPtr, theRows);
 		}
@@ -211,13 +239,6 @@ namespace MyDB {
 				theRows.push_back(std::make_unique<Row>(aDataBlockPtr->getData()));
 				});
 		}
-
-		// adding share lock to the entity table
-		EntityBlockPtr theEntityBlock;
-		size_t thePreviousIndex;
-		getEntityBlock(theEntityName, theEntityBlock, thePreviousIndex);
-		lockManagerPtr->LockShared(transactionShrPtr.get(),theEntityBlock->getBlockIndex());
-		transactionShrPtr->GetSharedLockSet()->emplace(theEntityBlock->getBlockIndex());
 
 		std::vector<std::string> theFields;
 		if (aSelectQueryPtr->getTargets()[0] == "*") {
@@ -304,17 +325,26 @@ namespace MyDB {
 
 	void Database::deleteData(std::ostream& anOutput, SQLQueryPtr& aSelectQueryPtr) {
 
+		lockManagerPtr->LockExclusive(transactionShrPtr.get(),0);
+		transactionShrPtr->GetExclusiveLockSet()->emplace(0);
+
+		TransactionLogBlock theCurTransactionLog;
+		std::vector<BlockPtr> theDeletedBlockPtrs;
+
+		DatabaseMetaHeaderBlockPtr theCopyMeta = std::make_shared<MetaHeaderBlock>(metadata);
+		theDeletedBlockPtrs.push_back(theCopyMeta);
+
 		size_t theNumBlocksAffected = 0;
 		EntityBlockPtr theEntityBlock;
 
 		getEntityBlock(aSelectQueryPtr->getTableName(), theEntityBlock);
-		theEntityBlock->entity->setToUpdateMode();
-
-		//add a write lock to the entity and file metaheader
-		lockManagerPtr->LockExclusive(transactionShrPtr.get(),0);
-		lockManagerPtr->LockExclusive(transactionShrPtr.get(),theEntityBlock->getBlockIndex());
-		transactionShrPtr->GetExclusiveLockSet()->emplace(0);
 		transactionShrPtr->GetExclusiveLockSet()->emplace(theEntityBlock->getBlockIndex());
+		lockManagerPtr->LockExclusive(transactionShrPtr.get(),theEntityBlock->getBlockIndex());
+		
+		EntityBlockPtr theCopyEntity = std::make_shared<EntityBlock>(theEntityBlock);
+		theDeletedBlockPtrs.push_back(theCopyEntity);
+
+		theEntityBlock->entity->setToUpdateMode();
 
 		Entity theUpdatedEntity = *theEntityBlock->entity.get();
 		if (aSelectQueryPtr->hasWhere) {
@@ -326,11 +356,11 @@ namespace MyDB {
 				Row theRow = aDataBlockPtr->getData();
 				if (aSelectQueryPtr->matches(theRow.getData())){
 
-					if (theLastBlock){
+					theDeletedBlockPtrs.push_back(aDataBlockPtr);
 
+					if (theLastBlock){
 						theLastBlock->nextDataIndex = aDataBlockPtr->nextDataIndex;
 						writeBlock(theLastBlock);
-
 					}else{
 						theEntityBlock->firstDataIndex = aDataBlockPtr->nextDataIndex;
 						//                        writeBlock(theEntityBlock);
@@ -338,26 +368,32 @@ namespace MyDB {
 
 					pushFreeBlock(aDataBlockPtr);
 					++theNumBlocksAffected;
-
 				}else{
-
 					theLastBlock = std::move(aDataBlockPtr);
 				}
 			});
 		}
 		else{
-
 			eachDataOfEntity(aSelectQueryPtr->getTableName(), [&](DataBlockPtr& aDataBlockPtr) {
+				theDeletedBlockPtrs.push_back(aDataBlockPtr);
 				pushFreeBlock(aDataBlockPtr);
 				++theNumBlocksAffected;
 			});
 			theEntityBlock->firstDataIndex = Block::kEndOfList;
 		}
+
 		writeBlock(theEntityBlock);
+		theCurTransactionLog = TransactionLogBlock{OperationType::DELETE,theDeletedBlockPtrs};
+		transactionLog.push_back(theCurTransactionLog);
 		QueryResultView(theNumBlocksAffected).show(anOutput);
+
 	}
 
 	void Database::updateData(std::ostream& anOutput, SQLQueryPtr& aSelectQueryPtr) {
+
+		TransactionLogBlock theCurTransactionLog;
+		std::vector<BlockPtr> theUpdatedBlockPtrs;
+
 		int theNumBlocksAffected = 0;
 		std::string   theEntityName = aSelectQueryPtr->getTableName();
 
@@ -365,14 +401,19 @@ namespace MyDB {
 		EntityBlockPtr theEntityBlock;
 		size_t thePreviousIndex;
 		getEntityBlock(theEntityName, theEntityBlock, thePreviousIndex);
-		lockManagerPtr->LockShared(transactionShrPtr.get(),theEntityBlock->getBlockIndex());
 
+		lockManagerPtr->LockShared(transactionShrPtr.get(),theEntityBlock->getBlockIndex());
+		transactionShrPtr->GetSharedLockSet()->emplace(theEntityBlock->getBlockIndex());
 
 		std::pair<std::string, std::string> theUpdateInfo = aSelectQueryPtr->getUpdateInfo();
 		eachDataOfEntity(theEntityBlock, [&](DataBlockPtr& aDataBlockPtr) {
+			
 			aDataBlockPtr->setToUpdateMode();
 			Row theRow = aDataBlockPtr->getData();
 			if (aSelectQueryPtr->matches(theRow.getData())) {
+				//make a copy of the original data;
+				theUpdatedBlockPtrs.push_back(std::make_shared<DataBlock>(*aDataBlockPtr));
+
 				KeyValues& theKeyValue = theRow.getData();
 				Value       theValue = theKeyValue[theUpdateInfo.first];
 				Value       theUpdateVal = Helpers::StringToValue(theValue, theUpdateInfo.second);
@@ -382,7 +423,12 @@ namespace MyDB {
 				writeBlock(aDataBlockPtr);
 				theNumBlocksAffected += 1;
 			}
-			});
+
+		});
+
+		theCurTransactionLog = TransactionLogBlock{OperationType::UPDATE,theUpdatedBlockPtrs};
+		transactionLog.push_back(theCurTransactionLog);
+
 		QueryResultView(theNumBlocksAffected).show(anOutput);
 
 	}
@@ -510,7 +556,7 @@ namespace MyDB {
         QueryResultView(theCount).show(anOutput);
     }
 
-	void Database::commit(){
+	void Database::releaseAllLocks(){
 
 		transactionShrPtr->SetState(TransactionState::COMMITTED);
 		
@@ -650,5 +696,38 @@ namespace MyDB {
 		}
 		lockManagerPtr->unlockLog();
 	};
+
+	/*-------------------------------------------------------------------- In Memory Log --------------------------------------------------------------------*/
+	// update operation only redo the corresponding datablocks, while insert and delete redo datablocks and metablock and entity block
+	void Database::undoAllTransactionLog(){
+
+		MetaHeaderBlock* 	theMeta;
+		EntityBlock* 		theEntity;
+		DataBlock* 			theDataBlock;
+
+		for(auto& theTransactionLogBlock:transactionLog){
+			switch (theTransactionLogBlock.first)
+			{
+			case OperationType::INSERT:
+			case OperationType::DELETE:
+				theMeta = dynamic_cast<MetaHeaderBlock*>(theTransactionLogBlock.second[0].get());
+				writeBlock(theMeta);
+				theEntity = dynamic_cast<EntityBlock*>(theTransactionLogBlock.second[1].get());
+				writeBlock(theEntity);
+
+				for(size_t theIndex=2;theIndex<theTransactionLogBlock.second.size();theIndex++){
+					theDataBlock = dynamic_cast<DataBlock*>(theTransactionLogBlock.second[theIndex].get());
+					writeBlock(theDataBlock);
+				}
+				break;
+			case OperationType::UPDATE:
+				for(auto& theBlock:theTransactionLogBlock.second){
+					theDataBlock = dynamic_cast<DataBlock*>(theBlock.get());
+					writeBlock(theDataBlock);
+				}
+				break;
+			}
+		}
+	}
 
 }

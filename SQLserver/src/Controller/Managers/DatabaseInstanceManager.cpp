@@ -14,6 +14,10 @@ namespace MyDB {
 
 		threadID theThreadID = std::this_thread::get_id();
 
+		if(DatabaseInstanceManager::threadIDToDBPtrMap[theThreadID]){
+			DatabaseInstanceManager::threadIDToDBPtrMap[theThreadID]->releaseAllLocks();
+		}
+
 		bool   theDBUsedByOtherThread=false;
 		threadID theSchemaThread;
 		for(std::unordered_map<threadID,DatabasePtr>::iterator it = threadIDToDBPtrMap.begin();it != threadIDToDBPtrMap.end();it++){
@@ -37,6 +41,8 @@ namespace MyDB {
 			threadIDToDBPtrMap[theThreadID]->updateCache(threadIDToDBPtrMap[theSchemaThread]->getBlockCache());
 			threadIDToDBPtrMap[theThreadID]->updateLockManager(threadIDToDBPtrMap[theSchemaThread]->getLockManager());
 		}
+		threadIDToDBPtrMap[theThreadID]->getLockManager()->registerTransaction(threadIDToDBPtrMap[theThreadID]->getTransactionPtr().get());
+
 	}
 	
 }

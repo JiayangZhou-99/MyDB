@@ -1,5 +1,5 @@
 make --dry-run --always-make --keep-going --print-directory
-make: Entering directory `/Users/zhoujiayang/Desktop/SQL/SQLserver'
+make: Entering directory `/Users/zhoujiayang/study_material/Git_repo/MyDB/SQLserver'
 chmod +x tools/build.sh && ./tools/build.sh
-make: Leaving directory `/Users/zhoujiayang/Desktop/SQL/SQLserver'
+make: Leaving directory `/Users/zhoujiayang/study_material/Git_repo/MyDB/SQLserver'
  

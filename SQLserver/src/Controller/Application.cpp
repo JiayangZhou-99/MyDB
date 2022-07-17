@@ -31,7 +31,6 @@ namespace MyDB {
 
 	//build a tokenizer, tokenize input, ask processors to handle...
 	StatusResult Application::handleInput(std::istream& anInput) {
-		int operationCnt = 0;
 		try {
 			Tokenizer theTokenizer(anInput);
 			StatusResult theResult = theTokenizer.tokenize();
@@ -53,7 +52,6 @@ namespace MyDB {
 				else {
 					throw unknownCommand;
 				}
-				operationCnt++;
 			}
 			// commit
 			// when finished all the statements inside a task, commit ->release all the locks -- strong 2 phase lock
@@ -61,11 +59,12 @@ namespace MyDB {
 			return theResult;
 		}
 		catch (Errors theError) {
+			
 			return theError;
 		}
 		catch(TransactionAbortException theException){
 			//aborted here --> need to roll back
-			DatabaseInstanceManager::abort(operationCnt);
+			DatabaseInstanceManager::abort();
 			output<<theException.GetInfo();
 			return Errors::transactionAborted;
 		}

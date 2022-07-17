@@ -94,6 +94,7 @@ namespace MyDB{
 
                 holdShareLocks      = std::make_shared<std::unordered_set<int>>();
                 holdExclusiveLocks  = std::make_shared<std::unordered_set<int>>();
+                
             }
             
             ~Transaction()=default;

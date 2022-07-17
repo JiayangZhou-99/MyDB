@@ -113,7 +113,9 @@ namespace MyDB{
 
                     std::string theReplyMsg = theApp.getOutput();
                     // std::cout << theReplyMsg << std::endl;
+                    // portLatch.lock();
                     sock->send(const_cast<char*>(theReplyMsg.c_str()), theReplyMsg.size());
+                    // portLatch.unlock();
                     theApp.refresh();
                     if(running == false) break;
                 }
@@ -133,8 +135,10 @@ namespace MyDB{
         }
         
     private:
-    
+
+        static std::mutex portLatch;
         std::unique_ptr<TCPServerSocket> SQLServerSocketPtr;
+        
     };
 }
 

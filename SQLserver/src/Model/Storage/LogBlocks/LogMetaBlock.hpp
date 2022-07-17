@@ -22,7 +22,7 @@ namespace MyDB
 
         SerializedCountType     databaseFormatVersion = Block::kFileFormatVersion;
 		SerializedIndexPtrType  latestOperationBlockIndex = 0;
-        SerializedIndexPtrType   currentCursorIndex = 0;
+        SerializedIndexPtrType  currentCursorIndex = 0;
 		SerializedCountType     numBlocks = 0;
 
     };
