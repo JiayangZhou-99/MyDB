@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
         bytesReceived = sock.recv(receiveBuffer, RCVBUFSIZE);
       }
 
-      if (bytesReceived  <= 0) {
+      if (bytesReceived  < 0) {
         std::cout << "Unable to read";
         exit(1);
       } 

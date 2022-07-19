@@ -37,9 +37,11 @@ namespace MyDB {
 		Database(const std::string& aName, OpenDB) : Storage(aName, AccessMode::AsExisting), name(aName), changed(false) {
 			
 			//Load metadata block into database memory
-			BlockPtr theBlock;
-			readBlockUncached(0, theBlock);
-			metadata = std::make_shared<MetaHeaderBlock>(theBlock);
+			// BlockPtr theBlock;
+			// readBlockUncached(0, theBlock); // bug here !!!!!!!!!!!!!!!!!!!!!!!!!
+			// metadata = std::make_shared<MetaHeaderBlock>(theBlock);
+
+			// metadata = std::make_shared<MetaHeaderBlock>();
 
 			BlockPtr theLogMetaBlock;
 			readLogBlock(0,theLogMetaBlock);
@@ -59,6 +61,8 @@ namespace MyDB {
 		TransactionPtr               getTransactionPtr();
 
 		void updateLockManager(std::shared_ptr<LockManager> anLockManagerPtr);
+
+		void updateMeta();
 
 		void dump(std::ostream& anOutput);
 

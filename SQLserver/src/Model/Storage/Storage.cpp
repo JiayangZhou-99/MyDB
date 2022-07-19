@@ -25,8 +25,12 @@ namespace MyDB {
 		logmeta(std::make_shared<LogMetaBlock>()){
 			// if (Config::getCacheSize(CacheType::block) > 0)
 			// {
-			// 	BlockPtr theBlock = blockCache->put(metadata->getBlockIndex(),metadata);
-			// 	writeBlockUncached(metadata);
+			// 	if(blockCache->contains(0)){
+			// 		metadata = std::make_shared<MetaHeaderBlock>(blockCache->get(0));
+			// 	}else{
+			// 		BlockPtr theBlock = blockCache->put(metadata->getBlockIndex(),metadata);
+			// 		writeBlockUncached(metadata);
+			// 	}
 			// }
 			// writeLog(logmeta);
 		}

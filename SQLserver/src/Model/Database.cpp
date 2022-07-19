@@ -42,6 +42,23 @@ namespace MyDB {
 		lockManagerPtr = anLockManagerPtr;
 	}
 
+	void Database::updateMeta(){
+		if (Config::getCacheSize(CacheType::block) > 0)
+		{
+			if(blockCache->contains(0)){
+				BlockPtr theBlock;
+				readBlock(0, theBlock);
+				// MetaHeaderBlock* theMetaBlock = dynamic_cast<MetaHeaderBlock*>(theBlock.get());
+				metadata = std::make_shared<MetaHeaderBlock>(theBlock); // a bug here!!!!!
+			}else{
+				BlockPtr theBlock;
+				readBlockUncached(0, theBlock); 
+				metadata = std::make_shared<MetaHeaderBlock>(theBlock);
+				writeBlock(metadata);
+			}
+		}
+	}
+
 	/// <summary>
 	/// Dumps the database to the specified stream
 	/// </summary>
@@ -49,6 +66,7 @@ namespace MyDB {
 	/// <returns>The status of the dump operation</returns>
 	void Database::dump(std::ostream& anOutput) {
 
+		metadata->refreshState();
 		auto theTableView = TableView("Type");
 		int theRowAffected=0;
 
@@ -79,7 +97,8 @@ namespace MyDB {
 		theEntityBlock->nextEntityIndex = metadata->firstEntityIndex;
 		metadata->firstEntityIndex = theEntityBlock->getBlockIndex();
 		writeBlock(theEntityBlock);
-
+		writeBlock(metadata);
+		
 		QueryResultView(1).show(anOutput);
 	}
 
@@ -151,6 +170,10 @@ namespace MyDB {
 	}
 
 	void Database::showTables(std::ostream& anOutput) {
+		
+		
+		////////////////// important here !!!!///////////////
+		updateMeta();
 		auto theTableView = TableView("Tables_in_" + name);
 		eachEntity([&](EntityBlockPtr& anEntity)
 			{

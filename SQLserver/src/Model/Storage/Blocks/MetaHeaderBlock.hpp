@@ -15,12 +15,12 @@ namespace MyDB {
 		void encode(std::fstream& anOutput) override;
 		void decode(std::fstream& anInput) override;
 		void refreshState() override;
-		void  saveState() override;
+		void saveState() override;
 
-		SerializedCountType databaseFormatVersion = Block::kFileFormatVersion;
-		SerializedIndexPtrType firstEntityIndex = 0;
-		SerializedIndexPtrType firstFreeBlockIndex = 0;
-		SerializedCountType numBlocks = 0;
+		SerializedCountType 	databaseFormatVersion = Block::kFileFormatVersion;
+		SerializedIndexPtrType 	firstEntityIndex = 0;
+		SerializedIndexPtrType 	firstFreeBlockIndex = 0;
+		SerializedCountType 	numBlocks = 0;
 
 	protected:
 	};

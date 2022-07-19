@@ -138,7 +138,7 @@ namespace MyDB{
 
         static std::mutex portLatch;
         std::unique_ptr<TCPServerSocket> SQLServerSocketPtr;
-        
+
     };
 }
 

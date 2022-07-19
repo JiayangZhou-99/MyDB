@@ -41,6 +41,7 @@ namespace MyDB {
 			threadIDToDBPtrMap[theThreadID]->updateCache(threadIDToDBPtrMap[theSchemaThread]->getBlockCache());
 			threadIDToDBPtrMap[theThreadID]->updateLockManager(threadIDToDBPtrMap[theSchemaThread]->getLockManager());
 		}
+		threadIDToDBPtrMap[theThreadID]->updateMeta();
 		threadIDToDBPtrMap[theThreadID]->getLockManager()->registerTransaction(threadIDToDBPtrMap[theThreadID]->getTransactionPtr().get());
 
 	}
