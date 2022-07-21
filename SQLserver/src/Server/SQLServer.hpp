@@ -8,6 +8,7 @@
 #include "PracticalSocket.hpp"
 #include <unordered_map>
 #include <thread>
+#include "ThreadPool.hpp"
 
 // output colorful "FAIL" and "PASS"
 #define WHITE "\033[37m"
@@ -15,7 +16,9 @@
 #define GREEN "\033[32m"
 
 namespace MyDB{
+    
     const int RCVBUFSIZE = 4096;
+    const size_t numOfThreads = 8;
 
     class SQLServer{
         using applicationPtr = std::shared_ptr<MyDB::Application>;
@@ -130,12 +133,14 @@ namespace MyDB{
             // pthread_detach(pthread_self());
 
             // Extract socket file descriptor from argument
-            handleTCPConnection(clntSock);
+            serverThreadPool.submit(handleTCPConnection,clntSock);
+            // handleTCPConnection(clntSock);
             delete clntSock;
         }
         
     private:
 
+        static ThreadPool serverThreadPool;
         static std::mutex portLatch;
         std::unique_ptr<TCPServerSocket> SQLServerSocketPtr;
 

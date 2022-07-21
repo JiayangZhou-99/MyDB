@@ -6,6 +6,7 @@
 namespace MyDB {
 
     std::mutex SQLServer::portLatch;
+    ThreadPool SQLServer::serverThreadPool(numOfThreads);
 
     SQLServer::SQLServer(const std::string &foreignAddress, unsigned short foreignPort){
         SQLServerSocketPtr = std::make_unique<TCPServerSocket>(foreignAddress,foreignPort);

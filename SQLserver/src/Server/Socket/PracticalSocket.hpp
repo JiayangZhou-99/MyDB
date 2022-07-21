@@ -25,9 +25,6 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef __PRACTICALSOCKET_INCLUDED__
-#define __PRACTICALSOCKET_INCLUDED__
-
 #include <string>            // For string
 #include <exception>         // For exception class
 
@@ -254,6 +251,4 @@ public:
 private:
   void setListen(int queueLen);
 };
-
-#endif
 #endif /* PracticalSocket_hpp */
