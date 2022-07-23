@@ -67,6 +67,7 @@ namespace MyDB {
       {MyDB::Errors::punctuationExpected, "Punctuation Expected"},
       {MyDB::Errors::tooManyPrimaryKeys,  "Too Much Primary Key"},
       {MyDB::Errors::transactionAborted,  "Transaction Aborted Please Do It Again"},
+      {MyDB::Errors::scriptError,         "Running Script crash"},
     };
 
     std::string theMessage="Unknown Error";

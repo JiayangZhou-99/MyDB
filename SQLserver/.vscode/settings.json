@@ -74,6 +74,8 @@
         "unordered_set": "cpp",
         "shared_mutex": "cpp",
         "list": "cpp",
-        "future": "cpp"
+        "future": "cpp",
+        "condition_variable": "cpp",
+        "queue": "cpp"
     }
 }

@@ -18,8 +18,9 @@ namespace MyDB {
                 std::cout << "waiting for new client"<< std::endl;
                 TCPSocket* clntSocket = SQLServerSocketPtr->accept();
                 // Create client thread
-                std::thread t1(makeThread, clntSocket);
-                t1.detach();
+                // std::thread t1(makeThread, clntSocket);
+                // t1.detach();
+                makeThread(clntSocket);
 
                 // t1.join();
                 // std::cout << "new thread created"<< std::endl;

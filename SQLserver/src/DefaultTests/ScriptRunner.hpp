@@ -27,7 +27,7 @@ namespace MyDB {
       if(userTerminated==theResult.error) {
         theResult=noError;
       }
-        theResult = noError;
+      theResult = noError;
       return theResult;
     }
     

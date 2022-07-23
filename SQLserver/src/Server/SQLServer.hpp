@@ -133,9 +133,9 @@ namespace MyDB{
             // pthread_detach(pthread_self());
 
             // Extract socket file descriptor from argument
-            serverThreadPool.submit(handleTCPConnection,clntSock);
+            serverThreadPool.submit(SQLServer::handleTCPConnection,clntSock);
             // handleTCPConnection(clntSock);
-            delete clntSock;
+            // delete clntSock;
         }
         
     private:

@@ -26,8 +26,12 @@ namespace MyDB {
         output << "Start doing script test\n";
 		RunScriptStatement* theScriptStatement  = dynamic_cast<RunScriptStatement*>(aStatement.get());
 		ScriptRunner theRunner(app);
-		std::fstream theScript(theScriptStatement->scriptPath);
-		throw theRunner.run(theScript, output);
+		// std::fstream theScript("/Users/zhoujiayang/study_material/Git_repo/MyDB/SQLserver/scripts/"+theScriptStatement->scriptPath+".txt",std::ios::in);
+		std::fstream theScript("../../scripts/"+theScriptStatement->scriptPath+".txt",std::ios::in);
+		StatusResult theResult =  theRunner.run(theScript, output);
+		if(!theResult){
+			throw Errors::scriptError;
+		}
     }
 
 	void ApplicationManager::run(StatementPtr& aStatement)

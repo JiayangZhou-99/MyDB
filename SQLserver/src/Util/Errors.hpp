@@ -74,6 +74,9 @@ namespace MyDB {
 		canNotUndoAnyMore = 7001,
 		canNotRedoAnyMore = 7002,
 
+		//script related
+		scriptError = 8001,
+
 
 		unknownError = 10000
 	};
