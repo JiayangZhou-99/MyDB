@@ -5,45 +5,22 @@ A Transaction level Concurrent SQL Server
 # Code Structure Of SQL Server
 
 ```
-├── CMakeLists.txt
+── CMakeLists.txt
 ├── CMakeSettings.json
 ├── makefile
+├── scripts
+│   ├── final.txt
+│   ├── test1.txt
+│   └── test2.txt
 ├── src
 │   ├── CMakeLists.txt
 │   ├── Controller
 │   │   ├── Application.cpp
 │   │   ├── Application.hpp
 │   │   ├── CommandProcessors
-│   │   │   ├── ApplicationProcessor.cpp
-│   │   │   ├── ApplicationProcessor.hpp
-│   │   │   ├── CommandProcessor.hpp
-│   │   │   ├── CommandProcessors.hpp
-│   │   │   ├── DatabaseProcessor.cpp
-│   │   │   ├── DatabaseProcessor.hpp
-│   │   │   ├── SQLProcessor.cpp
-│   │   │   └── SQLProcessor.hpp
 │   │   ├── Locker
-│   │   │   ├── LockManager.cpp
-│   │   │   ├── LockManager.hpp
-│   │   │   └── Transaction.hpp
 │   │   ├── Managers
-│   │   │   ├── ApplicationManager.cpp
-│   │   │   ├── ApplicationManager.hpp
-│   │   │   ├── DatabaseInstanceManager.cpp
-│   │   │   ├── DatabaseInstanceManager.hpp
-│   │   │   ├── DatabaseManager.cpp
-│   │   │   ├── DatabaseManager.hpp
-│   │   │   ├── Manager.hpp
-│   │   │   ├── Managers.hpp
-│   │   │   ├── SQLManager.cpp
-│   │   │   └── SQLManager.hpp
 │   │   └── ParserHelpers
-│   │       ├── Compare.hpp
-│   │       ├── ParseHelper.cpp
-│   │       ├── ParseHelper.hpp
-│   │       ├── Scanner.hpp
-│   │       ├── Tokenizer.cpp
-│   │       └── Tokenizer.hpp
 │   ├── DefaultTests
 │   │   ├── Faked.cpp
 │   │   ├── Faked.hpp
@@ -66,67 +43,11 @@ A Transaction level Concurrent SQL Server
 │   │   ├── SQLQuery.cpp
 │   │   ├── SQLQuery.hpp
 │   │   ├── Statements
-│   │   │   ├── ApplicationStatements
-│   │   │   │   ├── ApplicationStatements.hpp
-│   │   │   │   ├── HelpApplicationStatement.hpp
-│   │   │   │   ├── QuitApplicationStatement.hpp
-│   │   │   │   ├── RunScriptStatement.hpp
-│   │   │   │   └── VersionApplicationStatement.hpp
-│   │   │   ├── DatabaseStatements
-│   │   │   │   ├── CreateDatabaseStatement.hpp
-│   │   │   │   ├── DatabaseStatements.hpp
-│   │   │   │   ├── DropDatabaseStatement.hpp
-│   │   │   │   ├── DumpDatabaseStatement.hpp
-│   │   │   │   ├── LogDatabaseStatement.hpp
-│   │   │   │   ├── ShowDatabasesStatement.hpp
-│   │   │   │   └── UseDatabaseStatement.hpp
-│   │   │   ├── SQLStatements
-│   │   │   │   ├── DeleteStatement.hpp
-│   │   │   │   ├── IndexStatement.hpp
-│   │   │   │   ├── InsertStatement.hpp
-│   │   │   │   ├── SQLStatements.hpp
-│   │   │   │   ├── SelectStatement.hpp
-│   │   │   │   └── UpdateStatement.hpp
-│   │   │   ├── Statement.hpp
-│   │   │   ├── Statements.hpp
-│   │   │   └── TableStatements
-│   │   │       ├── AlterTableStatement.hpp
-│   │   │       ├── CreateTableStatement.hpp
-│   │   │       ├── DescribeTableStatement.hpp
-│   │   │       ├── DropTableStatement.hpp
-│   │   │       ├── ShowTablesStatement.hpp
-│   │   │       └── TableStatements.hpp
 │   │   └── Storage
-│   │       ├── BPlusTree.cpp
-│   │       ├── BPlusTree.hpp
-│   │       ├── Blocks
-│   │       │   ├── Block.cpp
-│   │       │   ├── Block.hpp
-│   │       │   ├── Blocks.hpp
-│   │       │   ├── DataBlock.cpp
-│   │       │   ├── DataBlock.hpp
-│   │       │   ├── EntityBlock.cpp
-│   │       │   ├── EntityBlock.hpp
-│   │       │   ├── FreeBlock.cpp
-│   │       │   ├── FreeBlock.hpp
-│   │       │   ├── MetaHeaderBlock.cpp
-│   │       │   └── MetaHeaderBlock.hpp
-│   │       ├── CustomLinkedList.hpp
-│   │       ├── LRUCache.hpp
-│   │       ├── LogBlocks
-│   │       │   ├── LogMetaBlock.cpp
-│   │       │   ├── LogMetaBlock.hpp
-│   │       │   ├── OperationBlock.cpp
-│   │       │   └── OperationBlock.hpp
-│   │       ├── Predefined.hpp
-│   │       ├── Storage.cpp
-│   │       └── Storage.hpp
 │   ├── Server
 │   │   ├── SQLServer.cpp
 │   │   ├── SQLServer.hpp
 │   │   └── Socket
-│   │       ├── PracticalSocket.cpp
-│   │       └── PracticalSocket.hpp
 │   ├── Util
 │   │   ├── BasicTypes.hpp
 │   │   ├── Config.hpp
@@ -143,28 +64,6 @@ A Transaction level Concurrent SQL Server
 │   │   ├── TableView.hpp
 │   │   ├── TimerView.hpp
 │   │   └── View.hpp
-│   ├── build
-│   │   ├── CMakeCache.txt
-│   │   └── CMakeFiles
-│   │       ├── 3.23.1
-│   │       │   ├── CMakeCCompiler.cmake
-│   │       │   ├── CMakeCXXCompiler.cmake
-│   │       │   ├── CMakeDetermineCompilerABI_C.bin
-│   │       │   ├── CMakeDetermineCompilerABI_CXX.bin
-│   │       │   ├── CMakeSystem.cmake
-│   │       │   ├── CompilerIdC
-│   │       │   │   ├── CMakeCCompilerId.c
-│   │       │   │   ├── a.out
-│   │       │   │   └── tmp
-│   │       │   └── CompilerIdCXX
-│   │       │       ├── CMakeCXXCompilerId.cpp
-│   │       │       ├── a.out
-│   │       │       └── tmp
-│   │       ├── CMakeOutput.log
-│   │       ├── CMakeTmp
-│   │       ├── VerifyGlobs.cmake
-│   │       ├── cmake.check_cache
-│   │       └── cmake.verify_globs
 │   └── main.cpp
 ├── tests
 │   ├── AutograderTests.cpp
@@ -188,9 +87,18 @@ A Transaction level Concurrent SQL Server
 ├── CMakeLists.txt
 ├── PracticalSocket.cpp
 ├── PracticalSocket.hpp
+├── client
 ├── client.cpp
 ├── makefile
 └── tools
     └── build.sh
     
 ```
+
+# Architecture Overview
+
+<img width="1154" alt="image" src="https://user-images.githubusercontent.com/63135646/182532962-d10673c2-b574-46d3-9a0b-d2408da39c4f.png"style="zoom:50%;">
+
+
+
+    
