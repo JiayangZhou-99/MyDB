@@ -5,22 +5,27 @@
 
 namespace MyDB {
 
-    std::mutex SQLServer::portLatch;
-    ThreadPool SQLServer::serverThreadPool(numOfThreads);
+    std::mutex      SQLServer::portLatch;
+    ThreadPoolPtr   SQLServer::serverThreadPoolPtr = std::make_unique<ThreadPool>(numOfThreads);
 
-    SQLServer::SQLServer(const std::string &foreignAddress, unsigned short foreignPort){
+    SQLServer::SQLServer(const std::string &foreignAddress, unsigned short foreignPort,ConnTerm anTerm){
         SQLServerSocketPtr = std::make_unique<TCPServerSocket>(foreignAddress,foreignPort);
+        term = anTerm;
     }
 
     void SQLServer::run(){
+        if(term == ConnTerm::LongConn) serverThreadPoolPtr = nullptr;
         try{
             for (;;) {      // Run
                 std::cout << "waiting for new client"<< std::endl;
                 TCPSocket* clntSocket = SQLServerSocketPtr->accept();
                 // Create client thread
-                // std::thread t1(makeThread, clntSocket);
-                // t1.detach();
-                makeThread(clntSocket);
+                if(term == ConnTerm::LongConn){
+                    std::thread t1(makeThread, clntSocket,term);
+                    t1.detach();
+                }else{
+                     makeThread(clntSocket,term);
+                }
 
                 // t1.join();
                 // std::cout << "new thread created"<< std::endl;

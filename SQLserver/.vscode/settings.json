@@ -76,6 +76,7 @@
         "list": "cpp",
         "future": "cpp",
         "condition_variable": "cpp",
-        "queue": "cpp"
+        "queue": "cpp",
+        "filesystem": "cpp"
     }
 }

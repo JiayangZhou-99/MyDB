@@ -19,16 +19,27 @@ namespace MyDB{
     
     const int RCVBUFSIZE = 4096;
     const size_t numOfThreads = 8;
+    enum class ConnTerm{shortConn = 0,LongConn = 1};
+    using ThreadPoolPtr = std::unique_ptr<ThreadPool>;
 
     class SQLServer{
         using applicationPtr = std::shared_ptr<MyDB::Application>;
     public:
-        SQLServer(const std::string &foreignAddress, unsigned short foreignPort);
+        SQLServer(const std::string &foreignAddress, unsigned short foreignPort,ConnTerm anTerm);
         void run();
 
         /**
          * client connection handler, start an new application to receive and run the command
         */
+        ///////////// have a bug here !!!!!!!!!!!!!!!!!!!!!!!!!!
+        ///////////// have a bug here !!!!!!!!!!!!!!!!!!!!!!!!!!
+        ///////////// have a bug here !!!!!!!!!!!!!!!!!!!!!!!!!!
+        ///////////// have a bug here !!!!!!!!!!!!!!!!!!!!!!!!!!
+        ///////////// have a bug here !!!!!!!!!!!!!!!!!!!!!!!!!!
+        ///////////// have a bug here !!!!!!!!!!!!!!!!!!!!!!!!!!
+        ///////////// have a bug here !!!!!!!!!!!!!!!!!!!!!!!!!!
+        // all client is reusing the same handle function!
+
         static void handleTCPConnection(TCPSocket *sock){
 
             std::cout << "Handling client ";
@@ -124,25 +135,30 @@ namespace MyDB{
                 }
                 // Destructor closes socketbb
             }while (running);
+            delete sock;
         };
 
 
-        static void makeThread(TCPSocket* clntSock){
+        static void makeThread(TCPSocket* clntSock,ConnTerm anTerm){
 
             // Guarantees that thread resources are deallocated upon return
             // pthread_detach(pthread_self());
 
             // Extract socket file descriptor from argument
-            serverThreadPool.submit(SQLServer::handleTCPConnection,clntSock);
-            // handleTCPConnection(clntSock);
+            if(anTerm == ConnTerm::shortConn){
+                serverThreadPoolPtr->submit(SQLServer::handleTCPConnection,clntSock);
+            }else{
+                handleTCPConnection(clntSock);
+            }
             // delete clntSock;
         }
         
     private:
 
-        static ThreadPool serverThreadPool;
+        static ThreadPoolPtr serverThreadPoolPtr;
         static std::mutex portLatch;
         std::unique_ptr<TCPServerSocket> SQLServerSocketPtr;
+        ConnTerm term;
 
     };
 }
