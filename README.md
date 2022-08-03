@@ -97,7 +97,7 @@ A Transaction level Concurrent SQL Server
 
 # Architecture Overview
 
-<img width="1154" alt="image" src="https://user-images.githubusercontent.com/63135646/182532962-d10673c2-b574-46d3-9a0b-d2408da39c4f.png"style="zoom:50%;">
+<img width="1154" alt="image" src="https://user-images.githubusercontent.com/63135646/182532962-d10673c2-b574-46d3-9a0b-d2408da39c4f.png" style="zoom:50%">
 
 
 
