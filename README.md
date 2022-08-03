@@ -312,45 +312,45 @@ Query Ok, 20 rows affected (0.00123 secs)
 
 Compile SQL server:
 
-\```console
+```console
 
 $ make
 
-\```
+```
 
 Run SQL server:
 
-\```console
+```console
 
-$ ./SQLserver  <Server Address> <Server Port> <Connection Mechenism> "
+$ ./SQLserver  <Server Address> <Server Port> <Connection Mechenism> 
 
-**./SQLserver** 127.0.0.1 8080 long 
+$ ./SQLserver 127.0.0.1 8080 long 
 
-**./SQLserver** 127.0.0.1 8080 short
+$ ./SQLserver 127.0.0.1 8080 short
 
-\```
+```
 
 
 
 Compile SQL Client:
 
-\```console
+```console
 
 $ make
 
-\```
+```
 
 Run SQL client:
 
-\```console
+```console
 
-$ ./client  <Server Address> <Server Port> <Connection Mechenism> "
+$ ./client  <Server Address> <Server Port> <Connection Mechenism> 
 
-**./client** 127.0.0.1 8080 long 
+$ ./client 127.0.0.1 8080 long 
 
-**./client** 127.0.0.1 8080 short
+$ ./client 127.0.0.1 8080 short
 
-\```
+```
 
 
 
